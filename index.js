@@ -11,7 +11,6 @@ app.use(bodyParser.json());
 // Sample hardcoded data
 let users = [];
 
-// Routes
 // Create a user
 app.post('/api/users', (req, res) => {
   const { username, password } = req.body;
