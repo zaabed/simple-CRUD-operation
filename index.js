@@ -1,46 +1,68 @@
-
+// app.js
 const express = require('express');
+const bodyParser = require('body-parser');
+
 const app = express();
-const cors = require('cors');
-const port = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
-const categories = require('./data/categories.json');
-const news = require('./data/news.json');
+// Middleware
+app.use(bodyParser.json());
 
-app.use(cors());
+// Sample hardcoded data
+let users = [];
 
-app.get('/', (req, res) => {
-    res.send('Dragon news is running ')
+// Routes
+// Create a user
+app.post('/api/users', (req, res) => {
+  const { username, password } = req.body;
+  const newUser = { username, password };
+  users.push(newUser);
+  res.status(201).json(newUser);
 });
 
+// Read all users
+app.get('/api/users', (req, res) => {
+  res.json(users);
+});
 
-app.get('/categories', (req, res) => {
-    res.send(categories);
-})
+// Read a user by username
+app.get('/api/users/:username', (req, res) => {
+  const { username } = req.params;
+  const foundUser = users.find(user => user.username === username);
+  if (foundUser) {
+    res.json(foundUser);
+  } else {
+    res.status(404).json({ error: 'User not found' });
+  }
+});
 
-app.get('/news', (req, res) => {
-    res.send(news);
-})
+// Update a user
+app.put('/api/users/:username', (req, res) => {
+  const { username } = req.params;
+  const { password } = req.body;
+  const foundIndex = users.findIndex(user => user.username === username);
+  if (foundIndex !== -1) {
+    users[foundIndex].password = password;
+    res.json(users[foundIndex]);
+  } else {
+    res.status(404).json({ error: 'User not found' });
+  }
+});
 
-app.get('/news/:id', (req, res) => {
-    const id = req.params.id;
-    const selectedNews = news.find(n => n._id === id);
-    res.send(selectedNews);
-})
+// Delete a user
+app.delete('/api/users/:username', (req, res) => {
+  const { username } = req.params;
+  const foundIndex = users.findIndex(user => user.username === username);
+  if (foundIndex !== -1) {
+    const deletedUser = users.splice(foundIndex, 1)[0];
+    res.json(deletedUser);
+  } else {
+    res.status(404).json({ error: 'User not found' });
+  }
+});
 
-app.get('/categories/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    if (id === 0) {
-        res.send(news);
-    }
-    else {
-        const selectedNews = news.filter(n => parseInt(n.category_id) === id);
-        res.send(selectedNews);
-    }
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
 
-})
-
-
-app.listen(port, () => {
-    console.log(`Dragon API is running on port:${port}`);
-})
